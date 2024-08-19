@@ -1,6 +1,10 @@
 #ifndef NETBUF_H_
 #define NETBUF_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #ifndef NETBUF_ASSERT
@@ -25,7 +29,7 @@ typedef struct netbuffer {
     } if_data;
 
     size_t user_data_length;
-    size_t user_data[];
+    uint8_t user_data[];
 } net_buffer_t;
 
 typedef struct net_buffer_cb {
@@ -38,5 +42,17 @@ typedef struct net_buffer_cb {
 
 int NetBufferInit(net_buffer_cb_t* cb, size_t nElems, size_t bufSize);
 int NetBufferDeinit(net_buffer_cb_t* cb);
+
+net_buffer_t* NetBufferRequest(net_buffer_cb_t* cb);
+net_buffer_t* NetBufferRequestUnchecked(net_buffer_cb_t* cb);
+int NetBufferRelease(net_buffer_cb_t* cb, net_buffer_t* buffer);
+
+/* Write `len` bytes of `data` to the buffer and set the `user_data_length` field
+ * Performs validation over `len`, but does not check if `cb` or `buffer` are valid */
+int NetBufferWriteChecked(net_buffer_cb_t* cb, net_buffer_t* buffer, const void* data, size_t len);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* NETBUF_H_ */
