@@ -141,6 +141,10 @@ static inline void stack_sort(struct simple_stack* self)
     self->is_sorted = 1;
 }
 
+static inline size_t stack_count(struct simple_stack * self) {
+    return self->tail_idx;
+}
+
 #ifdef __cplusplus
 }
 #endif
