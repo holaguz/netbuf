@@ -1,35 +1,72 @@
 BUILD_DIR = build
-TEST_FILES = $(wildcard test/*.cpp)
 
+AR ?= ar
 CC  ?= gcc
 CXX ?= g++
+OBJDUMP ?= objdump
+
 CFLAGS += -Iinclude -Wall -Wextra -g3
+SANITIZE_FLAGS = -fsanitize=address -fsanitize=undefined -fsanitize=leak
+COV_FLAGS = --coverage -ftest-coverage -fprofile-abs-path
+DEPFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
 SOURCES := $(wildcard src/*.c)
 OBJECTS := $(patsubst src/%.c,build/%.o,$(SOURCES))
+TEST_FILES = $(wildcard test/*.cpp)
+
+ifdef SANITIZE
+CFLAGS += $(SANITIZE_FLAGS)
+endif
 
 build/main: $(OBJECTS) main.c | $(BUILD_DIR) Makefile
 	$(CC) $(CFLAGS) $^ -o $@
 
 build/%.o: src/%.c | $(BUILD_DIR) Makefile
-	$(CC) $(CFLAGS) -c $^ -o $@
+	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
+
+build/libnetbuf.a: $(OBJECTS) | $(BUILD_DIR) Makefile
+	$(AR) rcs $@ $^
+
+%.lst: %.o
+	$(OBJDUMP) $< -h -d -S > $@ &
+
+%.lst: %.elf
+	$(OBJDUMP) $< -h -d -S > $@ &
+
+disassemble: $(OBJECTS:.o=.lst)
 
 clean:
 	rm -rf build *.o
 
-build/test: GTEST_FLAGS = $(shell pkg-config --cflags --libs gtest_main)
-build/test: CFLAGS += -Og -fsanitize=undefined -fsanitize=address -fsanitize=leak
-build/test: $(TEST_FILES) $(OBJECTS) | $(BUILD_DIR) Makefile
-	$(CXX) $(CFLAGS) $(GTEST_FLAGS) -lc -Wno-error \
-		$(TEST_FILES) $(OBJECTS) -o $@
+TEST_RUNNERS = $(patsubst test/%.cpp,build/test_%.o,$(TEST_FILES))
+GTEST_FLAGS := $(shell pkg-config --cflags --libs gtest_main)
+GTEST_FLAGS += $(CFLAGS) -Og $(SANITIZE_FLAGS)
 
-run_tests: build/test
-	./build/test
+build/test_%.o: test/%.cpp | $(BUILD_DIR) Makefile
+	$(CXX) $(GTEST_FLAGS) $(DEPFLAGS) -c $< -o $@
+
+build/test: CFLAGS += $(SANITIZE_FLAGS) $(COV_FLAGS)
+build/test: $(TEST_RUNNERS) $(OBJECTS) | $(BUILD_DIR) Makefile
+	$(CXX) $(GTEST_FLAGS) $(COV_FLAGS) $^ -o $@
+
+test: build/test
+	build/test
+	@gcovr --lcov report.info 2> /dev/null
+
+coverage:
+	@gcovr 2>/dev/null
+	@gcovr -o build/coverage.html --html 2> /dev/null
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-test: run_tests
+lib: build/libnetbuf.a
 
-default: build/main build/test
-.PHONY: clean test run_tests
+default: build/main lib
+
+all: default disassemble test
+
+-include $(shell find -name "*.d" -type f)
+
+.DEFAULT_GOAL := default
+.PHONY: clean test
