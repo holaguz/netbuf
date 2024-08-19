@@ -44,3 +44,47 @@ int NetBufferDeinit(net_buffer_cb_t* cb)
     // clang-format on
     return 0;
 }
+
+net_buffer_t* NetBufferRequest(net_buffer_cb_t* cb)
+{
+    if (!cb || stack_count(cb->free_list) == 0) {
+        return NULL;
+    }
+
+    return NetBufferRequestUnchecked(cb);
+}
+
+__attribute__((always_inline)) inline net_buffer_t* NetBufferRequestUnchecked(net_buffer_cb_t* cb)
+{
+    void* buffer = stack_pop(cb->free_list);
+    stack_push(cb->used_list, buffer);
+    return (net_buffer_t*)buffer;
+}
+
+int NetBufferRelease(net_buffer_cb_t* cb, net_buffer_t* buffer)
+{
+    if (!cb || !buffer) {
+        return -1;
+    }
+
+    if (stack_remove(cb->used_list, buffer) < 0) {
+        return -1;
+    }
+
+    stack_push(cb->free_list, buffer);
+    stack_sort(cb->used_list);
+
+    return 0;
+}
+
+int NetBufferWriteChecked(net_buffer_cb_t* cb, net_buffer_t* buffer, const void* data, size_t len)
+{
+    if (len > cb->buffer_capacity) {
+        return -1;
+    }
+
+    memcpy(buffer->user_data, data, len);
+    buffer->user_data_length = len;
+
+    return len;
+}
