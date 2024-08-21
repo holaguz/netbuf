@@ -39,7 +39,7 @@ int cbuf_count(const struct circular_buffer* self);
 
 /* please don't use this. its cursed and O(n) for lookup and then requires
  * moving all the memory that comes before it. */
-/* int cbuf_remove(struct circular_buffer* self, void* item); */
+int cbuf_remove(struct circular_buffer* self, void* item);
 
 #ifdef __cplusplus
 }

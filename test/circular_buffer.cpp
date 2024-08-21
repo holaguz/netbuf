@@ -1,13 +1,12 @@
+#include "gtest/gtest.h"
 #include <gmock/gmock.h>
 #include <numeric>
 #include <ranges>
 
 using namespace ::testing;
 
-#define NETBUF_ASSERT(x) EXPECT_TRUE(x)
-
+#define NETBUF_ASSERT(x) ASSERT_TRUE(x)
 #include "circular_buffer.h"
-#include "netbuf.h"
 
 namespace {
 
@@ -127,8 +126,8 @@ TEST(CircularBuffer, PushBackWrapping)
         cbuf_push_back(cb, (void*)v);
     }
 
-    for(auto v: values) {
-        EXPECT_EQ((void*) v, cbuf_pop_front(cb));
+    for (auto v : values) {
+        EXPECT_EQ((void*)v, cbuf_pop_front(cb));
     }
 
     cbuf_free(cb);
@@ -143,7 +142,7 @@ TEST(CircularBuffer, PopBackWrapping)
     std::iota(values.begin(), values.end(), 0);
 
     const auto offset = 0;
-    for(size_t i = 0; i < offset; ++i) {
+    for (size_t i = 0; i < offset; ++i) {
         cbuf_push_back(cb, nullptr);
         cbuf_pop_front(cb);
     }
@@ -154,9 +153,8 @@ TEST(CircularBuffer, PopBackWrapping)
 
     /* ASSERT_EQ((void*)values[0], cb->entry[cb->capacity - 1]); */
 
-    for(auto v: values) {
-        std::cout << v << std::endl;
-        EXPECT_EQ((void*) v, cbuf_pop_back(cb));
+    for (auto v : values) {
+        EXPECT_EQ((void*)v, cbuf_pop_back(cb));
     }
 
     cbuf_free(cb);
@@ -179,12 +177,76 @@ TEST(CircularBuffer, PushAssert)
     const size_t n = 16;
     cb = cbuf_alloc(n);
 
-    for(size_t i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n; ++i) {
         cbuf_push_back(cb, nullptr);
     }
 
     EXPECT_DEATH(cbuf_push_back(cb, nullptr), "");
     EXPECT_DEATH(cbuf_push_front(cb, nullptr), "");
+    cbuf_free(cb);
+}
+
+TEST(CircularBuffer, Remove)
+{
+    struct circular_buffer* cb;
+    const size_t n = 16;
+    cb = cbuf_alloc(n);
+
+    auto values = std::vector<size_t> {
+        1, 2, 3, 4
+    };
+
+    for (auto v : values) {
+        cbuf_push_back(cb, (void*)v);
+    }
+
+    /* --------- TAIL REMOVAL -------- */
+    {
+        // before:
+        // v head
+        // 1  2  3  4  ?
+        //             ^ tail
+
+        // after:
+        // v head
+        // 1  2  4  ?
+        //          ^ tail
+
+        cbuf_remove(cb, (void*)3);
+        EXPECT_EQ(values.size() - 1, cb->tail);
+        EXPECT_EQ(values.size() - 1, cbuf_count(cb));
+        EXPECT_EQ((void*)1, cbuf_pop_front(cb));
+        EXPECT_EQ((void*)2, cbuf_pop_front(cb));
+        EXPECT_EQ((void*)4, cbuf_pop_front(cb));
+    }
+
+    cbuf_free(cb);
+
+    cb = cbuf_alloc(n);
+    for (auto v : values) {
+        cbuf_push_back(cb, (void*)v);
+    }
+
+    /* --------- HEAD REMOVAL -------- */
+    {
+        // before:
+        // v head
+        // 1  2  3  4  ?
+        //             ^ tail
+
+        // after:
+        //    v head
+        // ?  1  3  4  ?
+        //             ^ tail
+
+        cbuf_remove(cb, (void*)2);
+        EXPECT_EQ(1, cb->head);
+        EXPECT_EQ(values.size() - 1, cbuf_count(cb));
+        EXPECT_EQ((void*)1, cbuf_pop_front(cb));
+        EXPECT_EQ((void*)3, cbuf_pop_front(cb));
+        EXPECT_EQ((void*)4, cbuf_pop_front(cb));
+    }
+
     cbuf_free(cb);
 }
 
