@@ -162,5 +162,30 @@ TEST(CircularBuffer, PopBackWrapping)
     cbuf_free(cb);
 }
 
+TEST(CircularBuffer, PopAssert)
+{
+    struct circular_buffer* cb;
+    const size_t n = 16;
+    cb = cbuf_alloc(n);
+
+    EXPECT_DEATH(cbuf_pop_back(cb), "");
+    EXPECT_DEATH(cbuf_pop_front(cb), "");
+    cbuf_free(cb);
+}
+
+TEST(CircularBuffer, PushAssert)
+{
+    struct circular_buffer* cb;
+    const size_t n = 16;
+    cb = cbuf_alloc(n);
+
+    for(size_t i = 0; i < n; ++i) {
+        cbuf_push_back(cb, nullptr);
+    }
+
+    EXPECT_DEATH(cbuf_push_back(cb, nullptr), "");
+    EXPECT_DEATH(cbuf_push_front(cb, nullptr), "");
+    cbuf_free(cb);
+}
 
 } // namespace
