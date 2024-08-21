@@ -51,6 +51,9 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-build
 .cache
+.direnv
+build
 compile_commands.json
+report.info
+
