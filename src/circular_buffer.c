@@ -153,3 +153,20 @@ int cbuf_remove(struct circular_buffer* self, void* item)
     self->count--;
     return 0;
 }
+
+void* cbuf_peek_front(const struct circular_buffer* self)
+{
+    if (!cbuf_count(self)) {
+        return NULL;
+    }
+    return self->entry[self->head];
+}
+
+/* returns the item at the back of the buffer, but does not remove it */
+void* cbuf_peek_back(const struct circular_buffer* self)
+{
+    if (!cbuf_count(self)) {
+        return NULL;
+    }
+    return self->entry[self->tail - 1];
+}

@@ -42,7 +42,13 @@ int cbuf_count(const struct circular_buffer* self);
 int cbuf_remove(struct circular_buffer* self, void* item);
 
 /* check if item is in the buffer */
-int cbuf_contains(const struct circular_buffer * self, const void* item);
+int cbuf_contains(const struct circular_buffer* self, const void* item);
+
+/* returns the item at the front of the buffer, but does not remove it */
+void* cbuf_peek_front(const struct circular_buffer* self);
+
+/* returns the item at the back of the buffer, but does not remove it */
+void* cbuf_peek_back(const struct circular_buffer* self);
 
 #ifdef __cplusplus
 }

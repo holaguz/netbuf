@@ -307,4 +307,56 @@ TEST(CircularBuffer, RandomRemove)
     }
 }
 
+TEST(CircularBuffer, PeekFront)
+{
+    struct circular_buffer* cb;
+    const size_t n = 16;
+    cb = cbuf_alloc(n);
+
+    auto values = std::vector<size_t> {
+        1, 2, 3, 4
+    };
+
+    for (auto v : values) {
+        cbuf_push_back(cb, (void*)v);
+    }
+
+    EXPECT_EQ((void*)1, cbuf_peek_front(cb));
+    cbuf_pop_front(cb);
+    EXPECT_EQ((void*)2, cbuf_peek_front(cb));
+    cbuf_pop_front(cb);
+    EXPECT_EQ((void*)3, cbuf_peek_front(cb));
+    cbuf_pop_front(cb);
+    EXPECT_EQ((void*)4, cbuf_peek_front(cb));
+    cbuf_pop_front(cb);
+
+    cbuf_free(cb);
+}
+
+TEST(CircularBuffer, PeekBack)
+{
+    struct circular_buffer* cb;
+    const size_t n = 16;
+    cb = cbuf_alloc(n);
+
+    auto values = std::vector<size_t> {
+        1, 2, 3, 4
+    };
+
+    for (auto v : values) {
+        cbuf_push_back(cb, (void*)v);
+    }
+
+    EXPECT_EQ((void*)4, cbuf_peek_back(cb));
+    cbuf_pop_back(cb);
+    EXPECT_EQ((void*)3, cbuf_peek_back(cb));
+    cbuf_pop_back(cb);
+    EXPECT_EQ((void*)2, cbuf_peek_back(cb));
+    cbuf_pop_back(cb);
+    EXPECT_EQ((void*)1, cbuf_peek_back(cb));
+    cbuf_pop_back(cb);
+
+    cbuf_free(cb);
+}
+
 } // namespace
