@@ -85,7 +85,8 @@ int cbuf_count(const struct circular_buffer* self)
     return self->count;
 }
 
-int cbuf_contains(const struct circular_buffer * self, const void* item) {
+int cbuf_contains(const struct circular_buffer* self, const void* item)
+{
     size_t found = 0;
     ssize_t idx = self->head;
     while (idx != self->head - 1) {
