@@ -41,6 +41,9 @@ int cbuf_count(const struct circular_buffer* self);
  * moving all the memory that comes before it. */
 int cbuf_remove(struct circular_buffer* self, void* item);
 
+/* check if item is in the buffer */
+int cbuf_contains(const struct circular_buffer * self, const void* item);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
