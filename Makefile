@@ -18,6 +18,10 @@ ifdef SANITIZE
 CFLAGS += $(SANITIZE_FLAGS)
 endif
 
+ifdef OPTIM
+CFLAGS += -O3
+endif
+
 build/main: $(OBJECTS) main.c | $(BUILD_DIR) Makefile
 	$(CC) $(CFLAGS) $^ -o $@
 
