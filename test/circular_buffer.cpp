@@ -250,4 +250,61 @@ TEST(CircularBuffer, Remove)
     cbuf_free(cb);
 }
 
+TEST(CircularBuffer, RandomRemove)
+{
+    const size_t num_runs = 1024*1024;
+
+    for (size_t i = 0; i < num_runs; ++i) {
+        struct circular_buffer* cb;
+        const size_t n = 8;
+        cb = cbuf_alloc(n);
+        EXPECT_NE(nullptr, cb);
+
+        auto values = std::vector<size_t>(n);
+        std::iota(values.begin(), values.end(), 1);
+        for (size_t i = 0; i < values.size(); ++i) {
+            auto v = values[i];
+            cbuf_push_back(cb, (void*)v);
+        }
+
+        /* 1 ~ n */
+        size_t times = 1 + std::rand() % n;
+        for (size_t j = 0; j < times; ++j) {
+
+            /* printf("Have %zu items inside\n", cb->count); */
+
+            size_t removal_idx = std::rand() % values.size();
+
+            /* std::cout << "Removing item " << std::hex << values[removal_idx] << std::endl;
+            for (size_t i = 0; i < n; ++i) {
+                printf("%02zx ", (size_t)cb->entry[i]);
+            }
+            std::cout << std::endl; */
+
+            /* printf("%zd, %zu, %zu\n", cb->head, cb->tail, cb->count); */
+            ASSERT_EQ(0, cbuf_remove(cb, (void*)values[removal_idx]));
+            /* printf("%zd, %zu, %zu\n", cb->head, cb->tail, cb->count); */
+
+            /* for (size_t i = 0; i < n; ++i) {
+                printf("%02zx ", (size_t)cb->entry[i]);
+            }
+            std::cout << std::endl << std::endl; */
+
+            const auto it = values.begin() + removal_idx;
+            values.erase(it);
+
+            /* printf("vec: ");
+            for(auto v: values) { printf("%zu ", v); }
+            printf("\n"); */
+
+            for (size_t i = 0; i < values.size(); ++i) {
+                auto v = values[i];
+                auto cb_idx = (cb->head + i) % cb->capacity;
+                ASSERT_EQ((void*)v, cb->entry[cb_idx]);
+            }
+        }
+        cbuf_free(cb);
+    }
+}
+
 } // namespace
