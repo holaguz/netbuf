@@ -60,7 +60,7 @@ test: build/test
 
 coverage:
 	@gcovr 2>/dev/null
-	@gcovr -o build/coverage.html --html 2> /dev/null
+	@gcovr --html-details -o build/coverage.html 2> /dev/null
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
