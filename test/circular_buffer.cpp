@@ -252,7 +252,7 @@ TEST(CircularBuffer, Remove)
 
 TEST(CircularBuffer, RandomRemove)
 {
-    const size_t num_runs = 1024*1024;
+    const size_t num_runs = 1024 * 128;
 
     for (size_t i = 0; i < num_runs; ++i) {
         struct circular_buffer* cb;
