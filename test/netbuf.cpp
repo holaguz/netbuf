@@ -6,6 +6,7 @@ using namespace ::testing;
 
 #include "netbuf.h"
 #include "simple_stack.h"
+#include "circular_buffer.h"
 
 namespace {
 
@@ -27,7 +28,7 @@ TEST(NetBuffer, Init)
 
     /* free list should be full, used list should be empty */
     EXPECT_EQ(stack_count(cb.free_list), 4);
-    EXPECT_EQ(stack_count(cb.used_list), 0);
+    EXPECT_EQ(cbuf_count(cb.used_list), 0);
 
     NetBufferDeinit(&cb);
 }

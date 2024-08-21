@@ -1,5 +1,6 @@
 #include "netbuf.h"
 #include "simple_stack.h"
+#include "circular_buffer.h"
 #include <assert.h>
 
 int NetBufferInit(net_buffer_cb_t* cb, size_t nElems, size_t bufSize)
@@ -9,7 +10,7 @@ int NetBufferInit(net_buffer_cb_t* cb, size_t nElems, size_t bufSize)
     }
 
     cb->free_list = stack_alloc(nElems);
-    cb->used_list = stack_alloc(nElems);
+    cb->used_list = cbuf_alloc(nElems);
     cb->buffers = NETBUF_MALLOC(nElems * (sizeof(net_buffer_t) + bufSize));
 
     // clang-format off
@@ -57,7 +58,7 @@ net_buffer_t* NetBufferRequest(net_buffer_cb_t* cb)
 __attribute__((always_inline)) inline net_buffer_t* NetBufferRequestUnchecked(net_buffer_cb_t* cb)
 {
     void* buffer = stack_pop(cb->free_list);
-    stack_push(cb->used_list, buffer);
+    cbuf_push_back(cb->used_list, buffer);
     return (net_buffer_t*)buffer;
 }
 
@@ -67,12 +68,14 @@ int NetBufferRelease(net_buffer_cb_t* cb, net_buffer_t* buffer)
         return -1;
     }
 
-    if (stack_remove(cb->used_list, buffer) < 0) {
-        return -1;
+    /* check if the buffer is on the front, which should be the case for this
+     * whole stupidity of abstraction to work performantly */
+    if(buffer == cbuf_peek_front(cb->used_list)) {
+        cbuf_pop_front(cb->used_list);
+        return 0;
+    } else {
+        return cbuf_remove(cb->used_list, buffer);
     }
-
-    stack_push(cb->free_list, buffer);
-    stack_sort(cb->used_list);
 
     return 0;
 }

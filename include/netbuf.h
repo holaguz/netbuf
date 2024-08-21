@@ -32,11 +32,15 @@ typedef struct netbuffer {
     uint8_t user_data[];
 } net_buffer_t;
 
+/* forward decl. */
+struct simple_stack;
+struct circular_buffer;
+
 typedef struct net_buffer_cb {
     size_t num_buffers;
     size_t buffer_capacity;
     struct simple_stack * free_list;
-    struct simple_stack * used_list;
+    struct circular_buffer * used_list;
     struct netbuffer * buffers;
 } net_buffer_cb_t;
 
