@@ -6,6 +6,7 @@ CXX ?= g++
 OBJDUMP ?= objdump
 
 CFLAGS += -Iinclude -Wall -Wextra -g3
+CXXFLAGS += -std=c++23
 SANITIZE_FLAGS = -fsanitize=address -fsanitize=undefined -fsanitize=leak
 COV_FLAGS = --coverage -ftest-coverage -fprofile-abs-path
 DEPFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
@@ -47,11 +48,11 @@ GTEST_FLAGS := $(shell pkg-config --cflags --libs gtest_main)
 GTEST_FLAGS += $(CFLAGS) -Og $(SANITIZE_FLAGS)
 
 build/test_%.o: test/%.cpp | $(BUILD_DIR) Makefile
-	$(CXX) $(GTEST_FLAGS) $(DEPFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(GTEST_FLAGS) $(DEPFLAGS) -c $< -o $@
 
 build/test: CFLAGS += $(SANITIZE_FLAGS) $(COV_FLAGS)
 build/test: $(TEST_RUNNERS) $(OBJECTS) | $(BUILD_DIR) Makefile
-	$(CXX) $(GTEST_FLAGS) $(COV_FLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(GTEST_FLAGS) $(COV_FLAGS) $^ -o $@
 
 test: build/test
 	build/test
