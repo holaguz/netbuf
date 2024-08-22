@@ -44,7 +44,7 @@ clean:
 	rm -rf build *.o
 
 TEST_RUNNERS = $(patsubst test/%.cpp,build/test_%.o,$(TEST_FILES))
-GTEST_FLAGS := $(shell pkg-config --cflags --libs gtest_main)
+GTEST_FLAGS := $(shell pkg-config --cflags --libs gtest_main 2>/dev/null)
 GTEST_FLAGS += $(CFLAGS) -Og $(SANITIZE_FLAGS)
 
 build/test_%.o: test/%.cpp | $(BUILD_DIR) Makefile
