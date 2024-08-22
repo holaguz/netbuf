@@ -55,6 +55,10 @@ int NetBufferRelease(net_buffer_cb_t* cb, net_buffer_t* buffer);
  * Performs validation over `len`, but does not check if `cb` or `buffer` are valid */
 int NetBufferWriteChecked(net_buffer_cb_t* cb, net_buffer_t* buffer, const void* data, size_t len);
 
+int NetBufferGetUsedCount(net_buffer_cb_t* self);
+
+net_buffer_t* NetBufferGetLRU(net_buffer_cb_t* self);
+
 #ifdef __cplusplus
 }
 #endif

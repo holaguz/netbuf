@@ -91,3 +91,11 @@ int NetBufferWriteChecked(net_buffer_cb_t* cb, net_buffer_t* buffer, const void*
 
     return len;
 }
+
+int NetBufferGetUsedCount(net_buffer_cb_t* self) {
+    return cbuf_count(self->used_list);
+}
+
+net_buffer_t* NetBufferGetLRU(net_buffer_cb_t* self) {
+    return cbuf_peek_front(self->used_list);
+}
