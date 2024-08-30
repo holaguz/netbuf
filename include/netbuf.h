@@ -25,7 +25,14 @@ typedef struct netbuffer {
     int8_t if_type;
     int8_t if_id;
     union {
-        void* opaque;
+        struct
+        {
+            uint32_t id; // 32 bits so it can fit STD and EXT frame ids
+            enum {
+                CAN_FRAME_REMOTE = 0,
+                CAN_FRAME_DATA = 1,
+            } frame_type;
+        } can_data;
     } if_data;
 
     size_t user_data_length;
