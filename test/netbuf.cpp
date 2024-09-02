@@ -53,9 +53,11 @@ TEST(NetBuffer, Release)
     net_buffer_cb_t cb[1];
     NetBufferInit(cb, 1, 16);
 
-    auto buffer = NetBufferRequest(cb);
-    EXPECT_TRUE(buffer);
-    EXPECT_EQ(0, NetBufferRelease(cb, buffer));
+    for (size_t i = 0; i < 1024; ++i) {
+        auto buffer = NetBufferRequest(cb);
+        EXPECT_TRUE(buffer);
+        EXPECT_EQ(0, NetBufferRelease(cb, buffer));
+    }
 
     NetBufferDeinit(cb);
 }
@@ -78,6 +80,31 @@ TEST(NetBuffer, WriteChecked)
     EXPECT_EQ(data_size, buffer->user_data_length);
     auto re = testing::internal::RE(".*");
     EXPECT_TRUE(re.FullMatch("sdfjksdkf", re));
+
+    free(user_data);
+    NetBufferDeinit(cb);
+}
+
+TEST(NetBuffer, Repeat)
+{
+    net_buffer_cb_t cb[1];
+    NetBufferInit(cb, 256, 4);
+
+    const size_t data_size = 15;
+    auto user_data = (uint8_t*)malloc(data_size);
+
+    for (size_t j = 0; j < 512; ++j) {
+        for (size_t i = 0; i < 128; ++i) {
+            auto buffer = NetBufferRequest(cb);
+            ASSERT_NE(nullptr, buffer);
+        }
+
+        for (size_t i = 0; i < 128; ++i) {
+            auto lru = NetBufferGetLRU(cb);
+            int ret = NetBufferRelease(cb, lru);
+            ASSERT_GE(0, ret);
+        }
+    }
 
     free(user_data);
     NetBufferDeinit(cb);

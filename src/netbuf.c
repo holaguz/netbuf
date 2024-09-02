@@ -72,9 +72,14 @@ int NetBufferRelease(net_buffer_cb_t* cb, net_buffer_t* buffer)
      * whole stupidity of abstraction to work performantly */
     if(buffer == cbuf_peek_front(cb->used_list)) {
         cbuf_pop_front(cb->used_list);
+        stack_push(cb->free_list, buffer);
         return 0;
     } else {
-        return cbuf_remove(cb->used_list, buffer);
+        int ret = cbuf_remove(cb->used_list, buffer);
+        if(ret == 0) {
+            stack_push(cb->free_list, buffer);
+        }
+        return ret;
     }
 
     return 0;
