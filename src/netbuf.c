@@ -9,9 +9,12 @@ int NetBufferInit(net_buffer_cb_t* cb, size_t nElems, size_t bufSize)
         return -1;
     }
 
+    const size_t elemSize = (sizeof(net_buffer_t) + bufSize);
+    const size_t totalBufferSize = nElems * elemSize;
+
     cb->free_list = stack_alloc(nElems);
     cb->used_list = cbuf_alloc(nElems);
-    cb->buffers = NETBUF_MALLOC(nElems * (sizeof(net_buffer_t) + bufSize));
+    cb->buffers = NETBUF_MALLOC(totalBufferSize);
 
     // clang-format off
     if (!cb->buffers)   { goto cleanup; }
@@ -19,11 +22,14 @@ int NetBufferInit(net_buffer_cb_t* cb, size_t nElems, size_t bufSize)
     if (!cb->used_list) { goto cleanup; }
     // clang-format on
 
+    // Initialize the memory to facilitate debugging
+    memset(cb->buffers, 0xAA, totalBufferSize);
     cb->num_buffers = nElems;
     cb->buffer_capacity = bufSize;
 
     for (size_t i = 0; i < nElems; ++i) {
-        stack_push(cb->free_list, &cb->buffers[i]);
+        void* buffer = (uint8_t*)cb->buffers + (i * elemSize);
+        stack_push(cb->free_list, buffer);
     }
 
     return 0;
