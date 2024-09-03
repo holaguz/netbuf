@@ -1,6 +1,6 @@
 #include "netbuf.h"
-#include "simple_stack.h"
 #include "circular_buffer.h"
+#include "simple_stack.h"
 #include <assert.h>
 
 int NetBufferInit(net_buffer_cb_t* cb, size_t nElems, size_t bufSize)
@@ -24,6 +24,7 @@ int NetBufferInit(net_buffer_cb_t* cb, size_t nElems, size_t bufSize)
 
     // Initialize the memory to facilitate debugging
     memset(cb->buffers, 0xAA, totalBufferSize);
+
     cb->num_buffers = nElems;
     cb->buffer_capacity = bufSize;
 
@@ -76,13 +77,13 @@ int NetBufferRelease(net_buffer_cb_t* cb, net_buffer_t* buffer)
 
     /* check if the buffer is on the front, which should be the case for this
      * whole stupidity of abstraction to work performantly */
-    if(buffer == cbuf_peek_front(cb->used_list)) {
+    if (buffer == cbuf_peek_front(cb->used_list)) {
         cbuf_pop_front(cb->used_list);
         stack_push(cb->free_list, buffer);
         return 0;
     } else {
         int ret = cbuf_remove(cb->used_list, buffer);
-        if(ret == 0) {
+        if (ret == 0) {
             stack_push(cb->free_list, buffer);
         }
         return ret;
@@ -115,6 +116,7 @@ int NetBufferGetUsedCount(net_buffer_cb_t* self)
     return cbuf_count(self->used_list);
 }
 
-net_buffer_t* NetBufferGetLRU(net_buffer_cb_t* self) {
+net_buffer_t* NetBufferGetLRU(net_buffer_cb_t* self)
+{
     return cbuf_peek_front(self->used_list);
 }

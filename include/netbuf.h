@@ -69,7 +69,7 @@ int NetBufferGetUsedCount(net_buffer_cb_t* self);
 
 net_buffer_t* NetBufferGetLRU(net_buffer_cb_t* self);
 
-int NetBufferUpdateCounters(net_buffer_cb_t * self);
+int NetBufferUpdateCounters(net_buffer_cb_t* self);
 
 #ifdef __cplusplus
 }
