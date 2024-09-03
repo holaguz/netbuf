@@ -103,7 +103,15 @@ int NetBufferWriteChecked(net_buffer_cb_t* cb, net_buffer_t* buffer, const void*
     return len;
 }
 
-int NetBufferGetUsedCount(net_buffer_cb_t* self) {
+int NetBufferUpdateCounters(net_buffer_cb_t* self)
+{
+    const uint8_t used = (size_t)cbuf_count(self->used_list) & 0xFF;
+    if (used > self->stats.high_water)
+        self->stats.high_water = used;
+}
+
+int NetBufferGetUsedCount(net_buffer_cb_t* self)
+{
     return cbuf_count(self->used_list);
 }
 

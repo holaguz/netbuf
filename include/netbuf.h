@@ -46,6 +46,9 @@ struct circular_buffer;
 typedef struct net_buffer_cb {
     size_t num_buffers;
     size_t buffer_capacity;
+    struct {
+        uint8_t high_water;
+    } stats;
     struct simple_stack* free_list;
     struct circular_buffer* used_list;
     struct netbuffer* buffers;
@@ -65,6 +68,8 @@ int NetBufferWriteChecked(net_buffer_cb_t* cb, net_buffer_t* buffer, const void*
 int NetBufferGetUsedCount(net_buffer_cb_t* self);
 
 net_buffer_t* NetBufferGetLRU(net_buffer_cb_t* self);
+
+int NetBufferUpdateCounters(net_buffer_cb_t * self);
 
 #ifdef __cplusplus
 }
