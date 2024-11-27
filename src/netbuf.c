@@ -109,6 +109,7 @@ int NetBufferUpdateCounters(net_buffer_cb_t* self)
     const uint8_t used = (size_t)cbuf_count(self->used_list) & 0xFF;
     if (used > self->stats.high_water)
         self->stats.high_water = used;
+    return 0;
 }
 
 int NetBufferGetUsedCount(net_buffer_cb_t* self)
