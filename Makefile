@@ -1,4 +1,4 @@
-BUILD_DIR = build
+BUILD_DIR ?= build
 
 AR ?= ar
 CC  ?= gcc
@@ -12,7 +12,7 @@ COV_FLAGS = --coverage -ftest-coverage -fprofile-abs-path
 DEPFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
 SOURCES := $(wildcard src/*.c)
-OBJECTS := $(patsubst src/%.c,build/%.o,$(SOURCES))
+OBJECTS := $(patsubst src/%.c,$(BUILD_DIR)/%.o,$(SOURCES))
 TEST_FILES = $(wildcard test/*.cpp)
 
 ifdef SANITIZE
@@ -23,13 +23,13 @@ ifdef OPTIM
 CFLAGS += -O3
 endif
 
-build/main: $(OBJECTS) main.c | $(BUILD_DIR) Makefile
+$(BUILD_DIR)/main: $(OBJECTS) main.c | $(BUILD_DIR) Makefile
 	$(CC) $(CFLAGS) $^ -o $@
 
-build/%.o: src/%.c | $(BUILD_DIR) Makefile
+$(BUILD_DIR)/%.o: src/%.c | $(BUILD_DIR) Makefile
 	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
-build/libnetbuf.a: $(OBJECTS) | $(BUILD_DIR) Makefile
+$(BUILD_DIR)/libnetbuf.a: $(OBJECTS) | $(BUILD_DIR) Makefile
 	$(AR) rcs $@ $^
 
 %.lst: %.o
@@ -41,33 +41,33 @@ build/libnetbuf.a: $(OBJECTS) | $(BUILD_DIR) Makefile
 disassemble: $(OBJECTS:.o=.lst)
 
 clean:
-	rm -rf build *.o
+	rm -rf $(BUILD_DIR) *.o
 
-TEST_RUNNERS = $(patsubst test/%.cpp,build/test_%.o,$(TEST_FILES))
+TEST_RUNNERS = $(patsubst test/%.cpp,$(BUILD_DIR)/test_%.o,$(TEST_FILES))
 GTEST_FLAGS := $(shell pkg-config --cflags --libs gtest_main 2>/dev/null)
 GTEST_FLAGS += $(CFLAGS) -Og $(SANITIZE_FLAGS)
 
-build/test_%.o: test/%.cpp | $(BUILD_DIR) Makefile
+$(BUILD_DIR)/test_%.o: test/%.cpp | $(BUILD_DIR) Makefile
 	$(CXX) $(CXXFLAGS) $(GTEST_FLAGS) $(DEPFLAGS) -c $< -o $@
 
-build/test: CFLAGS += $(SANITIZE_FLAGS) $(COV_FLAGS)
-build/test: $(TEST_RUNNERS) $(OBJECTS) | $(BUILD_DIR) Makefile
+$(BUILD_DIR)/test: CFLAGS += $(SANITIZE_FLAGS) $(COV_FLAGS)
+$(BUILD_DIR)/test: $(TEST_RUNNERS) $(OBJECTS) | $(BUILD_DIR) Makefile
 	$(CXX) $(CXXFLAGS) $(GTEST_FLAGS) $(COV_FLAGS) $^ -o $@
 
-test: build/test
-	build/test
+test: $(BUILD_DIR)/test
+	$(BUILD_DIR)/test
 	@gcovr --lcov report.info 2> /dev/null
 
 coverage:
 	@gcovr 2>/dev/null
-	@gcovr --html-details -o build/coverage.html 2> /dev/null
+	@gcovr --html-details -o $(BUILD_DIR)/coverage.html 2> /dev/null
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-lib: build/libnetbuf.a
+lib: $(BUILD_DIR)/libnetbuf.a
 
-default: build/main lib
+default: $(BUILD_DIR)/main lib
 
 all: default disassemble test
 
