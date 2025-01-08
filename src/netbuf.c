@@ -101,7 +101,7 @@ int NetBufferWriteChecked(net_buffer_cb_t* cb, net_buffer_t* buffer, const void*
     memcpy(buffer->user_data, data, len);
     buffer->user_data_length = len;
 
-    return len;
+    return (int)len;
 }
 
 int NetBufferUpdateCounters(net_buffer_cb_t* self)

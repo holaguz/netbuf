@@ -30,7 +30,7 @@ void cbuf_push_back(struct circular_buffer* self, void* item)
 
     self->tail += 1;
     if ((size_t)self->tail >= self->capacity) {
-        self->tail -= self->capacity;
+        self->tail -= (ssize_t)self->capacity;
     }
 
     self->count += 1;
@@ -42,7 +42,7 @@ void* cbuf_pop_back(struct circular_buffer* self)
 
     self->tail -= 1;
     if (self->tail < 0) {
-        self->tail += self->capacity;
+        self->tail += (ssize_t)self->capacity;
     }
 
     void* item = self->entry[self->tail];
@@ -57,7 +57,7 @@ void cbuf_push_front(struct circular_buffer* self, void* item)
 
     self->head -= 1;
     if (self->head < 0) {
-        self->head += self->capacity;
+        self->head += (ssize_t)self->capacity;
     }
 
     self->entry[self->head] = item;
@@ -72,7 +72,7 @@ void* cbuf_pop_front(struct circular_buffer* self)
 
     self->head++;
     if ((size_t)self->head >= self->capacity) {
-        self->head -= self->capacity;
+        self->head -= (ssize_t)self->capacity;
     }
 
     self->count -= 1;
@@ -82,7 +82,7 @@ void* cbuf_pop_front(struct circular_buffer* self)
 /* number of items in the buffer */
 int cbuf_count(const struct circular_buffer* self)
 {
-    return self->count;
+    return (int)self->count;
 }
 
 int cbuf_contains(const struct circular_buffer* self, const void* item)
@@ -100,14 +100,14 @@ int cbuf_contains(const struct circular_buffer* self, const void* item)
         /* advance the iterator */
         idx = idx + 1;
         if ((size_t)idx >= self->capacity) {
-            idx -= self->capacity;
+            idx -= (ssize_t)self->capacity;
         }
     }
 
     if (!found) {
         return -1;
     }
-    return idx;
+    return (int)idx;
 }
 
 int cbuf_remove(struct circular_buffer* self, void* item)
@@ -121,33 +121,33 @@ int cbuf_remove(struct circular_buffer* self, void* item)
      * [it, self->tail] backwards. we calculate for the two possibilities and
      * pick the one which requires less time */
 
-    int delta_head = idx - self->head;
+    ssize_t delta_head = idx - self->head;
     if (delta_head < 0) {
-        delta_head += self->capacity;
+        delta_head += (ssize_t)self->capacity;
     }
 
-    int delta_tail = self->tail - idx - 1;
+    ssize_t delta_tail = self->tail - idx - 1;
     if (delta_tail < 0) {
-        delta_tail += self->capacity;
+        delta_tail += (ssize_t)self->capacity;
     }
 
     if (delta_head < delta_tail) {
         void* src = &self->entry[self->head];
         void* dst = &self->entry[self->head + 1];
-        memmove(dst, src, sizeof(void*) * delta_head);
+        memmove(dst, src, sizeof(void*) * (size_t)delta_head);
 
         self->head += 1;
         if ((size_t)self->head > self->capacity) {
-            self->head -= self->capacity;
+            self->head -= (ssize_t)self->capacity;
         }
     } else {
         void* src = &self->entry[idx + 1];
         void* dst = &self->entry[idx];
-        memmove(dst, src, sizeof(void*) * delta_tail);
+        memmove(dst, src, sizeof(void*) * (size_t)delta_tail);
 
         self->tail -= 1;
         if (self->tail < 0) {
-            self->tail += self->capacity;
+            self->tail += (ssize_t)self->capacity;
         }
     }
 

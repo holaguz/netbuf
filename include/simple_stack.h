@@ -21,16 +21,16 @@ struct simple_stack {
     uint8_t is_sorted : 1;
 
     // current number of elements in the stack
-    int32_t tail_idx;
+    size_t tail_idx;
 
     // the maximum number of elements that can be stored
-    uint32_t capacity;
+    size_t capacity;
     void* entry[];
 };
 
 #define SIMPLE_STACK_TOTAL_SIZE(capacity) (sizeof(struct simple_stack) + (capacity * sizeof(void*)))
 
-static inline struct simple_stack* stack_alloc(uint32_t capacity)
+static inline struct simple_stack* stack_alloc(size_t capacity)
 {
     // allocate the stack
     struct simple_stack* q = (struct simple_stack*)NETBUF_MALLOC(SIMPLE_STACK_TOTAL_SIZE(capacity));
@@ -81,7 +81,7 @@ static inline void* stack_pop(struct simple_stack* self)
 
 static inline void stack_push(struct simple_stack* self, void* entry)
 {
-    NETBUF_ASSERT(self->tail_idx < (int32_t)self->capacity);
+    NETBUF_ASSERT(self->tail_idx < self->capacity);
 
     // update the entry
     self->entry[self->tail_idx++] = entry;
