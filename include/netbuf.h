@@ -24,10 +24,10 @@ extern "C" {
 typedef struct netbuffer {
     int8_t if_type;
     int8_t if_id;
+    uint32_t id;
     union {
         struct
         {
-            uint32_t id; // 32 bits so it can fit STD and EXT frame ids
             enum {
                 CAN_FRAME_REMOTE = 0,
                 CAN_FRAME_DATA = 1,
